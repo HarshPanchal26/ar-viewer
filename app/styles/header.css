@@ -1,0 +1,259 @@
+.header {
+  background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 50%, #ffd4c2 100%);
+  padding: 1.5rem 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 2px solid rgba(255, 107, 53, 0.1);
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.logo-svg {
+  height: 45px;
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.logo-text {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  fill: #1a1a1a;
+  letter-spacing: -0.5px;
+}
+
+.header-divider {
+  width: 2px;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, rgba(255, 107, 53, 0.3), transparent);
+}
+
+.header-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.header-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.header-subtitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #666;
+  margin: 0;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+/* Added header actions container for search and QR button */
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Added search form styles */
+.search-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.search-form:focus-within {
+  box-shadow: 0 4px 16px rgba(255, 107, 53, 0.2);
+  transform: translateY(-1px);
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  width: 200px;
+  padding-right: 0.5rem;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.clear-search-btn,
+.search-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  color: #666;
+  transition: color 0.3s ease;
+}
+
+.clear-search-btn:hover,
+.search-btn:hover {
+  color: #ff6b35;
+}
+
+.clear-search-btn {
+  margin-right: 0.25rem;
+}
+
+/* Mobile search toggle and dropdown */
+.mobile-search-toggle {
+  display: none;
+}
+
+.mobile-search-dropdown {
+  display: none;
+}
+
+.desktop-search {
+  display: flex;
+}
+
+/* Updated icon button styles for consistency */
+.icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.icon-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.icon-btn:active {
+  transform: translateY(0);
+}
+
+/* Keep legacy qr-scan-button class for backward compatibility */
+.qr-scan-button {
+  /* Inherits from .icon-btn */
+}
+
+@media (max-width: 968px) {
+  .header {
+    padding: 1rem 1.5rem;
+  }
+
+  .search-input {
+    width: 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 1rem;
+  }
+
+  .header-content {
+    gap: 1rem;
+  }
+
+  .header-divider {
+    display: none;
+  }
+
+  .header-title {
+    font-size: 1.25rem;
+  }
+
+  .header-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .logo-svg {
+    height: 36px;
+  }
+
+  .logo-text {
+    font-size: 26px;
+  }
+
+  /* Mobile-optimized search and buttons */
+  .desktop-search {
+    display: none;
+  }
+
+  .mobile-search-toggle {
+    display: flex;
+    padding: 0.6rem;
+    background: white;
+    color: #ff6b35;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .mobile-search-dropdown {
+    display: block;
+    padding: 1rem;
+    background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 50%);
+    border-top: 1px solid rgba(255, 107, 53, 0.1);
+  }
+
+  .mobile-search-dropdown .search-form {
+    width: 100%;
+  }
+
+  .mobile-search-dropdown .search-input {
+    width: 100%;
+    flex: 1;
+  }
+
+  .icon-btn {
+    padding: 0.6rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-text {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-title-section {
+    display: none;
+  }
+
+  .header-actions {
+    gap: 0.5rem;
+  }
+}

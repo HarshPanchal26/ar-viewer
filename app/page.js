@@ -1,66 +1,164 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client"
 
-export default function Home() {
+import { useState, useEffect } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
+import Header from "./components/Header"
+import ModelList from "./components/ModelList"
+import ModelViewer from "./components/ModelViewer"
+import Loader from "./components/Loader"
+import ErrorMessage from "./components/ErrorMessage"
+import QRScanner from "./components/QRScanner"
+import ARModelViewer from "./components/ARModelViewer"
+import { fetch3dModels, getFeaturedModels } from "./services/api"
+import "./styles/app.css"
+
+export default function Page() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  const pageFromUrl = Number.parseInt(searchParams.get("page")) || 1
+
+  const [models, setModels] = useState([])
+  const [filteredModels, setFilteredModels] = useState([])
+  const [featuredModels, setFeaturedModels] = useState([])
+  const [selectedModel, setSelectedModel] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [currentPage, setCurrentPage] = useState(pageFromUrl)
+  const [totalCount, setTotalCount] = useState(0)
+  const [searchQuery, setSearchQuery] = useState("")
+
+  const [showQRScanner, setShowQRScanner] = useState(false)
+  const [showARViewer, setShowARViewer] = useState(false)
+  const [scannedModelUrl, setScannedModelUrl] = useState(null)
+
+  useEffect(() => {
+    setFeaturedModels(getFeaturedModels())
+  }, [])
+
+  useEffect(() => {
+    loadModels(pageFromUrl)
+  }, [pageFromUrl])
+
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const allModels = [...featuredModels, ...models]
+      const filtered = allModels.filter((model) =>
+        model.modelName.toLowerCase().includes(searchQuery.toLowerCase().trim()),
+      )
+      setFilteredModels(filtered)
+    } else {
+      setFilteredModels(models)
+    }
+  }, [searchQuery, models, featuredModels])
+
+  const loadModels = async (page = 1) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const response = await fetch3dModels(page)
+
+      if (response.models && response.models.length > 0) {
+        setModels(response.models)
+        setFilteredModels(response.models)
+        setCurrentPage(page)
+        setTotalCount(response.totalCount)
+      } else {
+        setModels([])
+        setFilteredModels([])
+        setError(response.error || "No models available at the moment.")
+      }
+
+      setLoading(false)
+    } catch (err) {
+      console.error("Error loading models:", err)
+      setError("Failed to load 3D models. Please try again later.")
+      setLoading(false)
+    }
+  }
+
+  const handlePageChange = (newPage) => {
+    router.push(`?page=${newPage}`)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  const handleModelSelect = (model) => {
+    setSelectedModel(model)
+  }
+
+  const handleBackToList = () => {
+    setSelectedModel(null)
+  }
+
+  const handleQRScanClick = () => {
+    setShowQRScanner(true)
+  }
+
+  const handleQRScanSuccess = (url) => {
+    setScannedModelUrl(url)
+    setShowQRScanner(false)
+    setShowARViewer(true)
+  }
+
+  const handleCloseQRScanner = () => {
+    setShowQRScanner(false)
+  }
+
+  const handleCloseARViewer = () => {
+    setShowARViewer(false)
+    setScannedModelUrl(null)
+  }
+
+  const handleSearch = (query) => {
+    setSearchQuery(query)
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.js file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="app">
+      <Header onQRScanClick={handleQRScanClick} onSearch={handleSearch} searchQuery={searchQuery} />
+
+      <main className="main-content">
+        {loading && models.length === 0 ? (
+          <Loader message="Loading 3D Models..." />
+        ) : error && models.length === 0 ? (
+          <ErrorMessage message={error} onRetry={() => loadModels(currentPage)} />
+        ) : selectedModel ? (
+          <ModelViewer
+            model={selectedModel}
+            onBack={handleBackToList}
+            allModels={filteredModels}
+            onSelectModel={handleModelSelect}
+          />
+        ) : (
+          <>
+            {/* {!searchQuery && featuredModels.length > 0 && (
+              <ModelList
+                models={featuredModels}
+                onSelectModel={handleModelSelect}
+                sectionTitle="Frequently Viewed"
+                showPagination={false}
+              />
+            )} */}
+
+            <ModelList
+              models={filteredModels}
+              onSelectModel={handleModelSelect}
+              currentPage={currentPage}
+              totalCount={totalCount}
+              onPageChange={handlePageChange}
+              loading={loading}
+              searchQuery={searchQuery}
+              sectionTitle={searchQuery ? "Search Results" : "All AR Models"}
+              showPagination={!searchQuery}
             />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+          </>
+        )}
       </main>
+
+      {showQRScanner && <QRScanner onScanSuccess={handleQRScanSuccess} onClose={handleCloseQRScanner} />}
+
+      {showARViewer && scannedModelUrl && <ARModelViewer modelUrl={scannedModelUrl} onClose={handleCloseARViewer} />}
     </div>
-  );
+  )
 }
