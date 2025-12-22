@@ -95,20 +95,28 @@ export default function Page() {
     setShowQRScanner(true)
   }
 
+  // Prevent duplicate scans or reopening
   const handleQRScanSuccess = (url) => {
-    setScannedModelUrl(url)
-    setShowQRScanner(false)
-    setShowARViewer(true)
+    if (showARViewer || scannedModelUrl === url) return;
+    setScannedModelUrl(url);
+    setShowQRScanner(false);
+    setShowARViewer(true);
   }
 
   const handleCloseQRScanner = () => {
-    setShowQRScanner(false)
+    setShowQRScanner(false);
+    setScannedModelUrl(null); // Clear any stale scan
   }
 
   const handleCloseARViewer = () => {
-    setShowARViewer(false)
-    setScannedModelUrl(null)
+    setShowARViewer(false);
+    // Delay clearing scannedModelUrl to avoid race conditions
+    setTimeout(() => setScannedModelUrl(null), 300);
   }
+  // Debugging: log state changes
+  useEffect(() => {
+    console.log('State changed:', { showARViewer, scannedModelUrl, showQRScanner })
+  }, [showARViewer, scannedModelUrl, showQRScanner])
 
   const handleSearch = (query) => {
     setSearchQuery(query)
@@ -156,9 +164,21 @@ export default function Page() {
         )}
       </main>
 
-      {showQRScanner && <QRScanner onScanSuccess={handleQRScanSuccess} onClose={handleCloseQRScanner} />}
+      {showQRScanner && (
+        <QRScanner
+          key={showQRScanner ? 'open' : 'closed'}
+          onScanSuccess={handleQRScanSuccess}
+          onClose={handleCloseQRScanner}
+        />
+      )}
 
-      {showARViewer && scannedModelUrl && <ARModelViewer modelUrl={scannedModelUrl} onClose={handleCloseARViewer} />}
+      {showARViewer && scannedModelUrl && (
+        <ARModelViewer
+          key={scannedModelUrl}
+          modelUrl={scannedModelUrl}
+          onClose={handleCloseARViewer}
+        />
+      )}
     </div>
   )
 }

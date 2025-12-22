@@ -5,6 +5,7 @@ import { Html5Qrcode } from "html5-qrcode"
 import "../styles/qr-scanner.css"
 
 export default function QRScanner({ onScanSuccess, onClose }) {
+  const isActiveRef = useRef(true)
   const [scanning, setScanning] = useState(false)
   const [error, setError] = useState(null)
   const [cameraPermission, setCameraPermission] = useState(null)
@@ -12,8 +13,10 @@ export default function QRScanner({ onScanSuccess, onClose }) {
   const html5QrCodeRef = useRef(null)
 
   useEffect(() => {
+    isActiveRef.current = true;
     requestCameraPermission()
     return () => {
+      isActiveRef.current = false;
       stopScanning()
     }
   }, [])
@@ -44,6 +47,7 @@ export default function QRScanner({ onScanSuccess, onClose }) {
           aspectRatio: 1.0,
         },
         (decodedText) => {
+          if (!isActiveRef.current) return;
           console.log("[v0] QR Code scanned:", decodedText)
           stopScanning()
           onScanSuccess(decodedText)
@@ -75,6 +79,7 @@ export default function QRScanner({ onScanSuccess, onClose }) {
   }
 
   const handleClose = async () => {
+    isActiveRef.current = false;
     await stopScanning()
     onClose()
   }
