@@ -1,5 +1,7 @@
+
 // Mock API service - Replace with your actual API endpoint
 const API_BASE_URL = "https://prod-api.melzoguru.in"
+// const API_BASE_URL = "http://localhost:3000"
 const MODELS_PER_PAGE = 10
 
 // Static featured models with audio (always shown first)
@@ -76,6 +78,34 @@ export async function fetch3dModels(page = 1) {
   } catch (error) {
     console.error("API fetch failed:", error)
 
+    return {
+      models: [],
+      totalCount: 0,
+      isAllModelsFetched: true,
+      error: error.message,
+    }
+  }
+}
+
+export async function fetchSearchModels(query, page = 1) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/fetchModel/search?query=${encodeURIComponent(query)}&page=${page}`)
+    if (!response.ok) {
+      throw new Error("API request failed")
+    }
+    const data = await response.json()
+    const transformedModels = (data.models || []).map((model) => ({
+      ...model,
+      hasAR: true,
+      hasAudio: !!model.audioLink,
+    }))
+    return {
+      models: transformedModels,
+      totalCount: data.totalModels || 0,
+      isAllModelsFetched: data.isAllModelsFetched || false,
+    }
+  } catch (error) {
+    console.error("API fetch failed:", error)
     return {
       models: [],
       totalCount: 0,
