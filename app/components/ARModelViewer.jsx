@@ -120,7 +120,7 @@ export default function ARModelViewer({ modelUrl, onClose }) {
 
   const resolveUrlAndDetectType = async (url) => {
     try {
-      console.log("[v0] Resolving URL:", url)
+      console.log(" Resolving URL:", url)
 
       // First, try to detect file type from URL
       const urlLower = url.toLowerCase()
@@ -134,14 +134,14 @@ export default function ARModelViewer({ modelUrl, onClose }) {
       }
 
       // URL doesn't have extension - follow redirect to get actual URL
-      console.log("[v0] No extension detected, following redirects...")
+      console.log(" No extension detected, following redirects...")
       const response = await fetch(url, {
         method: "HEAD",
         redirect: "follow",
       })
 
       const finalUrl = response.url
-      console.log("[v0] Final URL after redirect:", finalUrl)
+      console.log(" Final URL after redirect:", finalUrl)
 
       const finalUrlLower = finalUrl.toLowerCase()
 
@@ -155,7 +155,7 @@ export default function ARModelViewer({ modelUrl, onClose }) {
 
       // Check content-type header
       const contentType = response.headers.get("content-type")
-      console.log("[v0] Content-Type:", contentType)
+      console.log(" Content-Type:", contentType)
 
       if (contentType?.includes("video")) {
         return { type: "360-video", url: finalUrl }
@@ -167,7 +167,7 @@ export default function ARModelViewer({ modelUrl, onClose }) {
 
       throw new Error("Unable to determine file type")
     } catch (err) {
-      console.error("[v0] Error resolving URL:", err)
+      console.error(" Error resolving URL:", err)
       throw err
     }
   }
@@ -178,11 +178,11 @@ export default function ARModelViewer({ modelUrl, onClose }) {
         const urlObj = new URL(modelUrl)
         const result = await resolveUrlAndDetectType(modelUrl)
 
-        console.log("[v0] Resolved content type:", result.type, "URL:", result.url)
+        console.log(" Resolved content type:", result.type, "URL:", result.url)
         setContentType(result.type)
         setResolvedUrl(result.url)
       } catch (err) {
-        console.error("[v0] Validation error:", err)
+        console.error(" Validation error:", err)
         setError(
           "Invalid URL or unsupported file format. Please scan a QR code with a 3D model (.glb/.gltf) or 360 video (.mp4).",
         )
@@ -200,7 +200,7 @@ export default function ARModelViewer({ modelUrl, onClose }) {
         const script = document.createElement("script")
         script.src = "https://aframe.io/releases/1.6.0/aframe.min.js"
         script.onload = () => {
-          console.log("[v0] A-Frame loaded")
+          console.log(" A-Frame loaded")
           initializeVideo()
         }
         document.head.appendChild(script)
@@ -219,15 +219,15 @@ export default function ARModelViewer({ modelUrl, onClose }) {
 
   const initializeVideo = async () => {
     if (videoRef.current && resolvedUrl) {
-      console.log("[v0] Initializing video:", resolvedUrl)
+      console.log(" Initializing video:", resolvedUrl)
       videoRef.current.src = resolvedUrl
       videoRef.current.load()
 
       try {
         await videoRef.current.play()
-        console.log("[v0] Video playing")
+        console.log(" Video playing")
       } catch (err) {
-        console.log("[v0] Autoplay blocked, waiting for user interaction")
+        console.log(" Autoplay blocked, waiting for user interaction")
         // Video will play on user tap
       }
     }
@@ -240,15 +240,15 @@ export default function ARModelViewer({ modelUrl, onClose }) {
     ) {
       try {
         const res = await DeviceOrientationEvent.requestPermission()
-        console.log("[v0] Gyro permission:", res)
+        console.log(" Gyro permission:", res)
         if (res === "granted" && videoRef.current) {
           await videoRef.current.play()
         }
       } catch (err) {
-        console.error("[v0] Gyro permission error:", err)
+        console.error(" Gyro permission error:", err)
       }
     } else {
-      console.log("[v0] Gyro permission not required")
+      console.log(" Gyro permission not required")
       if (videoRef.current) {
         await videoRef.current.play()
       }
@@ -256,12 +256,12 @@ export default function ARModelViewer({ modelUrl, onClose }) {
   }
 
   const handleModelError = (e) => {
-    console.error("[v0] Model loading error:", e)
+    console.error(" Model loading error:", e)
     setError("Failed to load the 3D model. The URL may be invalid or the model file may be corrupted.")
   }
 
   const handleVideoError = (e) => {
-    console.error("[v0] Video loading error:", e)
+    console.error(" Video loading error:", e)
     setError("Failed to load the 360 video. The URL may be invalid or the video file may be corrupted.")
   }
 

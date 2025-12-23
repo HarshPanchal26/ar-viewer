@@ -76,17 +76,17 @@
 //     if (!modelViewer) return
 
 //     const handleARStatus = (event) => {
-//       console.log("[v0] AR Status:", event.type)
+//       console.log(" AR Status:", event.type)
 //       if (event.type === "ar-status") {
 //         setIsARActive(event.detail.status === "session-started")
 //       }
 //     }
 
 //     const handleQuickLookButtonTapped = () => {
-//       console.log("[v0] Quick Look AR activated")
+//       console.log(" Quick Look AR activated")
 //       setIsARActive(true)
 //       if (audioRef.current && audioUrl) {
-//         audioRef.current.play().catch((err) => console.error("[v0] Audio play failed:", err))
+//         audioRef.current.play().catch((err) => console.error(" Audio play failed:", err))
 //       }
 //     }
 
@@ -101,8 +101,8 @@
 
 //   useEffect(() => {
 //     if (isARActive && audioRef.current && audioUrl) {
-//       console.log("[v0] Playing audio in AR mode")
-//       audioRef.current.play().catch((err) => console.error("[v0] Audio play failed:", err))
+//       console.log(" Playing audio in AR mode")
+//       audioRef.current.play().catch((err) => console.error(" Audio play failed:", err))
 //     } else if (!isARActive && audioRef.current) {
 //       audioRef.current.pause()
 //       audioRef.current.currentTime = 0
