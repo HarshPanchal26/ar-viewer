@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import Header from "./components/Header"
 import ModelList from "./components/ModelList"
 import ModelViewer from "./components/ModelViewer"
@@ -15,6 +15,7 @@ import "./styles/app.css"
 export default function Page() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const pathname = usePathname();
 
   const pageFromUrl = Number.parseInt(searchParams.get("page")) || 1
 
@@ -32,6 +33,9 @@ export default function Page() {
   const [showARViewer, setShowARViewer] = useState(false)
   const [scannedModelUrl, setScannedModelUrl] = useState(null)
 
+  // Track last search query to detect changes
+  const [lastSearchQuery, setLastSearchQuery] = useState("");
+
   useEffect(() => {
     setFeaturedModels(getFeaturedModels())
   }, [])
@@ -39,6 +43,26 @@ export default function Page() {
   useEffect(() => {
     loadModels(pageFromUrl)
   }, [pageFromUrl])
+
+  useEffect(() => {
+    if (searchQuery.trim() !== lastSearchQuery.trim()) {
+      setCurrentPage(1);
+      setLastSearchQuery(searchQuery);
+      if (searchQuery.trim()) {
+        router.push(`/search?page=1&query=${encodeURIComponent(searchQuery)}`);
+      } else {
+        router.push(`/?page=1`);
+      }
+    }
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (pathname === "/search" && searchQuery.trim()) {
+      loadSearchModels(searchQuery, currentPage);
+    } else {
+      loadModels(currentPage);
+    }
+  }, [currentPage, pathname, searchQuery])
 
   useEffect(() => {
     if (searchQuery.trim()) {
@@ -78,9 +102,39 @@ export default function Page() {
     }
   }
 
+  const loadSearchModels = async (query, page = 1) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const response = await fetch3dModels(page, query)
+
+      if (response.models && response.models.length > 0) {
+        setModels(response.models)
+        setFilteredModels(response.models)
+        setCurrentPage(page)
+        setTotalCount(response.totalCount)
+      } else {
+        setModels([])
+        setFilteredModels([])
+        setError(response.error || "No models found for your search.")
+      }
+
+      setLoading(false)
+    } catch (err) {
+      console.error("Error loading search models:", err)
+      setError("Failed to load search results. Please try again later.")
+      setLoading(false)
+    }
+  }
+
   const handlePageChange = (newPage) => {
-    router.push(`?page=${newPage}`)
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    if (searchQuery.trim()) {
+      router.push(`/search?page=${newPage}&query=${encodeURIComponent(searchQuery)}`);
+    } else {
+      router.push(`/?page=${newPage}`);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   const handleModelSelect = (model) => {
