@@ -9,6 +9,7 @@ export default function QRScanner({ onScanSuccess, onClose }) {
   const [scanning, setScanning] = useState(false)
   const [error, setError] = useState(null)
   const [cameraPermission, setCameraPermission] = useState(null)
+  const [cameraLoading, setCameraLoading] = useState(false);
   const scannerRef = useRef(null)
   const html5QrCodeRef = useRef(null)
 
@@ -36,8 +37,24 @@ export default function QRScanner({ onScanSuccess, onClose }) {
 
   const startScanning = async () => {
     try {
-      const html5QrCode = new Html5Qrcode("qr-reader")
-      html5QrCodeRef.current = html5QrCode
+      setCameraLoading(true);
+      // Clean up any previous scanner DOM content
+      const qrReaderElem = document.getElementById("qr-reader");
+      if (qrReaderElem) {
+        qrReaderElem.innerHTML = "";
+      }
+
+      const html5QrCode = new Html5Qrcode("qr-reader");
+      html5QrCodeRef.current = html5QrCode;
+
+      // Timeout for camera startup
+      let cameraStarted = false;
+      const timeout = setTimeout(() => {
+        if (!cameraStarted) {
+          setCameraLoading(false);
+          setError("Camera failed to open. Please check permissions and try again.");
+        }
+      }, 5000); // 5 seconds
 
       await html5QrCode.start(
         { facingMode: "environment" },
@@ -48,32 +65,39 @@ export default function QRScanner({ onScanSuccess, onClose }) {
         },
         (decodedText) => {
           if (!isActiveRef.current) return;
-          console.log("[v0] QR Code scanned:", decodedText)
-          stopScanning()
-          onScanSuccess(decodedText)
+          clearTimeout(timeout);
+          setCameraLoading(false);
+          stopScanning();
+          onScanSuccess(decodedText);
         },
         (errorMessage) => {
           // Silent error for scanning process
         },
-      )
-
-      setScanning(true)
-      setError(null)
+      );
+      cameraStarted = true;
+      clearTimeout(timeout);
+      setCameraLoading(false);
+      setScanning(true);
+      setError(null);
     } catch (err) {
-      console.error("Error starting scanner:", err)
-      setError("Failed to start camera. Please try again.")
-      setScanning(false)
+      setCameraLoading(false);
+      console.error("Error starting scanner:", err);
+      setError("Failed to start camera. Please try again.");
+      setScanning(false);
     }
   }
 
   const stopScanning = async () => {
-    if (html5QrCodeRef.current && scanning) {
+    if (html5QrCodeRef.current) {
       try {
-        await html5QrCodeRef.current.stop()
-        html5QrCodeRef.current = null
-        setScanning(false)
+        if (scanning) {
+          await html5QrCodeRef.current.stop();
+        }
+        await html5QrCodeRef.current.clear(); // Properly clear the scanner and release camera
+        html5QrCodeRef.current = null;
+        setScanning(false);
       } catch (err) {
-        console.error("Error stopping scanner:", err)
+        console.error("Error stopping/clearing scanner:", err);
       }
     }
   }
@@ -124,6 +148,9 @@ export default function QRScanner({ onScanSuccess, onClose }) {
             </div>
           ) : (
             <>
+              {cameraLoading && (
+                <div className="qr-loading">Opening camera...</div>
+              )}
               <div id="qr-reader" ref={scannerRef} className="qr-reader"></div>
               <div className="qr-instructions">
                 <p>Position the QR code within the frame to scan</p>
@@ -136,3 +163,4 @@ export default function QRScanner({ onScanSuccess, onClose }) {
     </div>
   )
 }
+
