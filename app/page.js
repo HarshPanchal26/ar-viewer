@@ -32,6 +32,7 @@ export default function Page() {
   const [showQRScanner, setShowQRScanner] = useState(false)
   const [showARViewer, setShowARViewer] = useState(false)
   const [scannedModelUrl, setScannedModelUrl] = useState(null)
+  const [isWebcamMode, setIsWebcamMode] = useState(false)
 
   // Track last search query to detect changes
   const [lastSearchQuery, setLastSearchQuery] = useState("");
@@ -153,6 +154,7 @@ export default function Page() {
   const handleQRScanSuccess = (url) => {
     if (showARViewer || scannedModelUrl === url) return;
     setScannedModelUrl(url);
+    setIsWebcamMode(false);
     setShowQRScanner(false);
     setShowARViewer(true);
   }
@@ -165,7 +167,10 @@ export default function Page() {
   const handleCloseARViewer = () => {
     setShowARViewer(false);
     // Delay clearing scannedModelUrl to avoid race conditions
-    setTimeout(() => setScannedModelUrl(null), 300);
+    setTimeout(() => {
+      setScannedModelUrl(null);
+      setIsWebcamMode(false);
+    }, 300);
   }
   // Debugging: log state changes
   useEffect(() => {
@@ -191,6 +196,11 @@ export default function Page() {
             onBack={handleBackToList}
             allModels={filteredModels}
             onSelectModel={handleModelSelect}
+            onStartAR={(model) => {
+              setScannedModelUrl(model.dracoURL || model.URL)
+              setIsWebcamMode(true)
+              setShowARViewer(true)
+            }}
           />
         ) : (
           <>
@@ -212,7 +222,7 @@ export default function Page() {
               loading={loading}
               searchQuery={searchQuery}
               sectionTitle={searchQuery ? "Search Results" : "All AR Models"}
-              showPagination={!searchQuery}
+              showPagination={!searchQuery} 
             />
           </>
         )}
@@ -230,6 +240,7 @@ export default function Page() {
         <ARModelViewer
           key={scannedModelUrl}
           modelUrl={scannedModelUrl}
+          isWebcamMode={isWebcamMode}
           onClose={handleCloseARViewer}
         />
       )}

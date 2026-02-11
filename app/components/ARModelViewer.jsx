@@ -14,6 +14,8 @@ export default function ARModelViewer({ modelUrl, onClose, isWebcamMode = false 
   const [videoDevices, setVideoDevices] = useState([])
   const [facingMode, setFacingMode] = useState("environment") // 'environment' (back) or 'user' (front)
   const [isSwitchingCamera, setIsSwitchingCamera] = useState(false)
+  const [deviceCount, setDeviceCount] = useState(0);
+
 
   const videoRef = useRef(null)
   const webcamVideoRef = useRef(null)
@@ -148,11 +150,18 @@ export default function ARModelViewer({ modelUrl, onClose, isWebcamMode = false 
             cameraStream.getTracks().forEach(track => track.stop());
           }
 
-          // Simplified constraints - removed resolution requirements which can cause OverconstrainedError on some front cameras
+          // Check for video devices first
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const videoInputDevices = devices.filter((d) => d.kind === "videoinput");
+          setDeviceCount(videoInputDevices.length);
+
+          // If 0 devices found, it might be because permission isn't granted yet.
+          // We still try to get user media to trigger the permission prompt.
+          // Constraints: precise if we have devices, loose if we don't know yet.
           const constraints = {
-            video: {
-              facingMode: { ideal: facingMode }
-            },
+            video: videoInputDevices.length <= 1
+              ? true // Default camera if 0 or 1 device known
+              : { facingMode: { ideal: facingMode } },
             audio: false
           };
 
@@ -166,25 +175,27 @@ export default function ARModelViewer({ modelUrl, onClose, isWebcamMode = false 
           }
 
           // Enumerate devices just for logging
-          const devices = await navigator.mediaDevices.enumerateDevices();
-          const cameras = devices.filter((d) => d.kind === "videoinput");
-          setVideoDevices(cameras);
-          console.log("Cameras found:", cameras.length);
+          setVideoDevices(videoInputDevices);
+          console.log("Cameras found:", videoInputDevices.length);
 
         } catch (err) {
           console.error("Error accessing camera:", err);
-          // Retry with loose constraints if specific ones fail
-          try {
-            console.log("Retrying with loose constraints...");
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-            activeStream = stream;
-            setCameraStream(stream);
-            if (webcamVideoRef.current) {
-              webcamVideoRef.current.srcObject = stream;
-              webcamVideoRef.current.play().catch(e => console.error("Fallback video play failed", e));
+          // Retry with loose constraints if specific ones fail AND it's not a "No camera" error
+          if (err.message !== "No camera devices found.") {
+            try {
+              console.log("Retrying with loose constraints...");
+              const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+              activeStream = stream;
+              setCameraStream(stream);
+              if (webcamVideoRef.current) {
+                webcamVideoRef.current.srcObject = stream;
+                webcamVideoRef.current.play().catch(e => console.error("Fallback video play failed", e));
+              }
+            } catch (retryErr) {
+              setError("Failed to access camera. Please allow camera permissions or check if another app is using it.");
             }
-          } catch (retryErr) {
-            setError("Failed to access camera. Please allow camera permissions and ensure no other app is using it.");
+          } else {
+            setError("No camera detected on this device.");
           }
         }
       };
@@ -338,7 +349,7 @@ export default function ARModelViewer({ modelUrl, onClose, isWebcamMode = false 
           ) : contentType === "3d-model" ? (
             isWebcamMode ? (
               /* Webcam AR Render */
-              <div className="webcam-ar-wrapper" style={{ position: 'relative', width: '100%', height: '500px', overflow: 'hidden', background: '#000', borderRadius: '12px' }}>
+              <div className="webcam-ar-wrapper">
                 {/* Camera Feed Background */}
                 <video
                   ref={webcamVideoRef}
@@ -350,6 +361,11 @@ export default function ARModelViewer({ modelUrl, onClose, isWebcamMode = false 
                     height: '100%',
                     objectFit: 'cover',
                     zIndex: 1
+                  }}
+                  onLoadedMetadata={() => {
+                    if (webcamVideoRef.current) {
+                      webcamVideoRef.current.play().catch(e => console.error("Video play failed on metadata load", e));
+                    }
                   }}
                   playsInline
                   autoPlay
@@ -380,30 +396,11 @@ export default function ARModelViewer({ modelUrl, onClose, isWebcamMode = false 
                   className="ar-switch-camera"
                   onClick={handleSwitchCamera}
                   disabled={isSwitchingCamera}
-                  style={{
-                    position: 'absolute',
-                    top: '20px',
-                    right: '20px',
-                    zIndex: 1001, /* Force higher z-index */
-                    background: 'rgba(0,0,0,0.6)',
-                    border: '1px solid rgba(255,255,255,0.4)',
-                    borderRadius: '50%',
-                    width: '48px', /* Slightly larger touch target */
-                    height: '48px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    pointerEvents: 'auto', /* Ensure clickable */
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
-                  }}
                   aria-label="Switch Camera"
                 >
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M20 10c0-4.418-3.582-8-8-8s-8 3.582-8 8H2l5 5 5-5H9C9 6.686 11.686 4 15 4c3.3137 0 6 2.6863 6 6 0 1.2599-.3879 2.433-1.0505 3.4005" />
-                    <path d="M4 14c0 4.418 3.582 8 8 8s8-3.582 8-8h2l-5-5-5 5h3c0 3.3137-2.6863 6-6 6-3.3137 0-6-2.6863-6-6 0-1.2599.3879-2.433 1.0505-3.4005" />
+                    <path d="M4 14c0 4.418 3.582 8 8 8s8-3.582 8-8h2l-5-5-5 h3c0 3.3137-2.6863 6-6 6-3.3137 0-6-2.6863-6-6 0-1.2599.3879-2.433 1.0505-3.4005" />
                   </svg>
                 </button>
 
