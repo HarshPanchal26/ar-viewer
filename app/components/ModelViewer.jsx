@@ -195,7 +195,7 @@ import { useState, useEffect } from "react"
 import ModelViewerComponent from "./ModelViewerComponent"
 import "../styles/model-viewer.css"
 
-export default function ModelViewer({ model, onBack, allModels, onSelectModel }) {
+export default function ModelViewer({ model, onBack, allModels, onSelectModel, onStartAR }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -253,6 +253,7 @@ export default function ModelViewer({ model, onBack, allModels, onSelectModel })
               audioUrl={model.audioLink}
               iosModelUrl={model.iosModelUrl}
               dracoUrl={model.dracoURL}
+              onStartAR={() => onStartAR(model)}
             />
           </div>
           <div className="model-info">

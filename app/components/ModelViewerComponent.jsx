@@ -168,7 +168,7 @@
 
 import { useEffect, useRef, useState } from "react"
 
-export default function ModelViewerComponent({ posterImage, modelUrl, modelName, audioUrl, iosModelUrl, dracoUrl }) {
+export default function ModelViewerComponent({ posterImage, modelUrl, modelName, audioUrl, iosModelUrl, dracoUrl, onStartAR }) {
   const modelViewerRef = useRef(null)
   const audioRef = useRef(null)
   const [isARActive, setIsARActive] = useState(false)
@@ -260,7 +260,7 @@ export default function ModelViewerComponent({ posterImage, modelUrl, modelName,
         }}
       />
       {audioUrl && <audio ref={audioRef} src={audioUrl} loop preload="auto" style={{ display: "none" }} />}
-      {arSupported && (
+      {arSupported ? (
         <div
           style={{
             position: "absolute",
@@ -283,6 +283,38 @@ export default function ModelViewerComponent({ posterImage, modelUrl, modelName,
             <path d="M8 21h8M12 17v4" />
           </svg>
           AR Available - Tap the AR button
+        </div>
+      ) : (
+        /* Fallback for Webcam AR on Laptop/Desktop */
+        <div
+          onClick={() => {
+            if (onStartAR) {
+              onStartAR();
+            }
+          }}
+          style={{
+            position: "absolute",
+            bottom: "20px",
+            right: "20px",
+            background: "white",
+            color: "#1c1c1c",
+            padding: "10px 16px",
+            borderRadius: "24px",
+            fontSize: "14px",
+            fontWeight: "600",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            zIndex: 20,
+            cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+          Enter AR Mode
         </div>
       )}
     </>
