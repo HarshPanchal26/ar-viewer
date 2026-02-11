@@ -265,6 +265,8 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
+
+
 .ar-viewer-header {
   display: flex;
   justify-content: space-between;
@@ -477,6 +479,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -485,7 +488,8 @@
 @media (max-width: 768px) {
   .ar-model-viewer-container {
     width: 95%;
-    max-height: 95vh;
+    max-height: 90vh;
+    margin: 20px auto;
   }
 
   .ar-viewer-header h2 {
@@ -520,4 +524,70 @@
   .video-360-wrapper a-scene {
     height: 400px !important;
   }
+}
+
+/* Webcam AR Styles */
+.webcam-ar-wrapper {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  /* Default height for desktop modal */
+  overflow: hidden;
+  background: #000;
+  border-radius: 12px;
+}
+
+.ar-switch-camera {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10002;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.ar-switch-camera:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: scale(1.05);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.ar-switch-camera:active {
+  transform: scale(0.95);
+}
+
+.ar-switch-camera:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.ar-instructions-overlay {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: white;
+  font-size: 14px;
+  z-index: 10;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
 }
