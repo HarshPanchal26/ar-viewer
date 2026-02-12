@@ -36,7 +36,7 @@ export default function ARModelViewer({ modelUrl, onClose, isWebcamMode = false 
         return { type: "3d-model", url: url }
       }
 
-      // URL doesn't have extension - follow redirect to get actual URL
+      // Only fetch if extension is NOT present
       console.log(" No extension detected, following redirects...")
       const response = await fetch(url, {
         method: "HEAD",
@@ -376,8 +376,15 @@ export default function ARModelViewer({ modelUrl, onClose, isWebcamMode = false 
                 <model-viewer
                   src={resolvedUrl}
                   camera-controls
+                  enable-pan
+                  interaction-prompt="auto"
                   auto-rotate
                   shadow-intensity="1"
+                  min-camera-orbit="auto"
+                  max-camera-orbit="auto"
+                  min-field-of-view="10deg"
+                  max-field-of-view="180deg"
+                  interpolation-decay="200"
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -429,9 +436,18 @@ export default function ARModelViewer({ modelUrl, onClose, isWebcamMode = false 
                     src={resolvedUrl}
                     ar
                     ar-modes="webxr scene-viewer quick-look"
+                    ar-scale="auto"
+                    ar-placement="floor"
                     camera-controls
+                    enable-pan
+                    interaction-prompt="auto"
                     auto-rotate
                     shadow-intensity="1"
+                    min-camera-orbit="auto"
+                    max-camera-orbit="auto"
+                    min-field-of-view="10deg"
+                    max-field-of-view="180deg"
+                    interpolation-decay="200"
                     style={{ width: "100%", height: "500px" }}
                     onError={handleModelError}
                   ></model-viewer>

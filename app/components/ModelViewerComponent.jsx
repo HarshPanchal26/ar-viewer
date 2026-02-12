@@ -246,18 +246,27 @@ export default function ModelViewerComponent({ posterImage, modelUrl, modelName,
         alt={modelName}
         ar
         ar-modes="webxr scene-viewer quick-look"
+        ar-scale="auto"
+        ar-placement="floor"
         camera-controls
         autoplay
         enable-pan
+        interaction-prompt="auto"
         shadow-intensity="1"
         environment-image="neutral"
         exposure="1"
+        min-camera-orbit="auto"
+        max-camera-orbit="auto"
+        min-field-of-view="10deg"
+        max-field-of-view="180deg"
+        interpolation-decay="200"
         style={{
           width: "100%",
           height: "100%",
           display: "block",
           background: "#1c1c1c",
         }}
+        disable-tap
       />
       {audioUrl && <audio ref={audioRef} src={audioUrl} loop preload="auto" style={{ display: "none" }} />}
       {arSupported ? (
@@ -267,22 +276,76 @@ export default function ModelViewerComponent({ posterImage, modelUrl, modelName,
             bottom: "20px",
             left: "50%",
             transform: "translateX(-50%)",
-            background: "rgba(0, 0, 0, 0.7)",
-            color: "white",
-            padding: "8px 16px",
-            borderRadius: "20px",
-            fontSize: "14px",
             display: "flex",
-            alignItems: "center",
-            gap: "8px",
+            gap: "12px",
             zIndex: 10,
+            width: "90%",
+            maxWidth: "400px",
+            justifyContent: "center",
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-            <path d="M8 21h8M12 17v4" />
-          </svg>
-          AR Available - Tap the AR button
+          {/* Native AR Button - "Place in Space" */}
+          <button
+            onClick={() => {
+              if (modelViewerRef.current) {
+                modelViewerRef.current.activateAR();
+              }
+            }}
+            style={{
+              flex: 1,
+              background: "white",
+              color: "#1c1c1c",
+              border: "none",
+              padding: "12px 16px",
+              borderRadius: "12px",
+              fontSize: "14px",
+              fontWeight: "600",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              cursor: "pointer",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            Place in Space
+          </button>
+
+          {/* Custom AR Button - "Selfie Mode" */}
+          <button
+            onClick={() => {
+              if (onStartAR) {
+                onStartAR();
+              }
+            }}
+            style={{
+              flex: 1,
+              background: "rgba(28, 28, 28, 0.9)",
+              color: "white",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              padding: "12px 16px",
+              borderRadius: "12px",
+              fontSize: "14px",
+              fontWeight: "600",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              cursor: "pointer",
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            Selfie Mode
+          </button>
         </div>
       ) : (
         /* Fallback for Webcam AR on Laptop/Desktop */
@@ -317,6 +380,9 @@ export default function ModelViewerComponent({ posterImage, modelUrl, modelName,
           Enter AR Mode
         </div>
       )}
+
+      {/* Hide default AR button */}
+      <div slot="ar-button" style={{ display: "none" }}></div>
     </>
   )
 }
